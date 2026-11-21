@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Final Fantasy XVI Faithful English Localization</title>
 <meta name="description" content="Browse the retranslation line by line, next to the Japanese and the official English.">
-<link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261121055030">
-<link rel="stylesheet" href="site.css?v=20261121055030">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261121063701">
+<link rel="stylesheet" href="site.css?v=20261121063701">
 <script>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}</script>
 </head>
 <body>
@@ -17,6 +17,7 @@
     <a href="#/">Browse</a>
     <a href="#/about" class="nav-about" hidden>About</a>
     <a href="#/search" class="nav-search">Search</a>
+    <a href="#" id="nav-src" class="nav-src" hidden target="_blank" rel="noopener">GitHub</a>
   </nav>
   <a id="dl-top" class="dl" href="#" hidden target="_blank" rel="noopener">Download</a>
   <button id="theme" type="button" class="ghost icon" title="Switch between light and dark" aria-label="Switch between light and dark">
@@ -46,9 +47,24 @@
 <main id="app" tabindex="-1" aria-live="polite"><p class="note">Loading…</p></main>
 
 <footer>
-  <p>Unofficial fan project, not affiliated with or endorsed by Square Enix. Final Fantasy XVI and its original script belong to their respective owners.</p>
-  <p>Data built 2026-11-21. <span class="f-hint">Press <kbd>/</kbd> to search. </span>Press <kbd>←</kbd> <kbd>→</kbd> to change file.</p>
+  <div class="foot-grid">
+    <section>
+      <h4>Website software</h4>
+      <p>The original source code of this script browser is licensed under the MIT License. The license covers only the website's software, not the script data or any copyrighted game content. <a id="foot-src" href="#" hidden target="_blank" rel="noopener">View the source on GitHub</a></p>
+    </section>
+    <section>
+      <h4>FINAL FANTASY XVI content</h4>
+      <p>FINAL FANTASY XVI, including its original Japanese dialogue, official English localization, characters and other underlying game content, is the property of SQUARE ENIX CO., LTD. and its respective rights holders.</p>
+      <p>© 2023 SQUARE ENIX CO., LTD. All Rights Reserved.</p>
+    </section>
+    <section>
+      <h4>This translation</h4>
+      <p>The English retranslation presented here is an unofficial fan translation based on the original Japanese script. It is not affiliated with, endorsed by, or authorized by Square Enix.</p>
+      <p>No license or permission to reproduce, redistribute, modify, or otherwise exploit the original game dialogue, official localization, or translated script is granted by this site.</p>
+    </section>
+  </div>
+  <p class="foot-meta">Data built 2026-11-21. <span class="f-hint">Press <kbd>/</kbd> to search. </span>Press <kbd>←</kbd> <kbd>→</kbd> to change file.</p>
 </footer>
-<script src="site.js?v=20261121055030" defer></script>
+<script src="site.js?v=20261121063701" defer></script>
 </body>
 </html>

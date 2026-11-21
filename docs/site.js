@@ -284,6 +284,7 @@ function applyFeatures() {
   const F = M.features, b = document.body.classList;
   b.toggle('no-jp', !F.japanese); b.toggle('no-off', !F.official); b.toggle('no-rom', !F.romaji); b.toggle('no-filters', !F.filters);
   $('.nav-about').hidden = !M.about; $('#filters').hidden = !F.filters;
+  if (M.source) ['#nav-src', '#foot-src'].forEach(s => { const a = $(s); a.href = M.source; a.hidden = false; });
   const dl = $('#dl-top'); if (M.hero.download_url) { dl.href = M.hero.download_url; dl.textContent = M.hero.download_label; dl.hidden = false; }
 }
 function applyCols() {                              // the saved choice drives the body classes; the switches exist only on pages that list lines
