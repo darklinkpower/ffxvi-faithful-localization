@@ -127,7 +127,18 @@ const plural = (n, one, many = one + 's') => n.toLocaleString('en-US') + ' ' + (
 
 /* ---------------------------------------------------------------- views */
 const app = () => $('#app');
-function crumbs(parts) { return '<div class="crumbs">' + parts.map(([t, h]) => h ? `<a href="${h}">${esc(t)}</a>` : esc(t)).join(' / ') + '</div>'; }
+/* Browse / <pack dropdown> / section: the dropdown switches pack and stays on the same category when the other pack has it */
+function packCrumb(pack, type) {
+  if (M.packs.length < 2) return null;
+  const opts = M.packs.map(p => `<option value="${esc(p.id)}"${p.id === pack ? ' selected' : ''}>${esc(p.name)}</option>`).join('');
+  return `<select class="packsel" aria-label="Switch between the main game and the DLC" data-type="${esc(type || '')}">${opts}</select>`;
+}
+/* the section (file type) as a dropdown of the sections of this pack; choosing one opens its file list */
+function sectionCrumb(pack, type) {
+  const opts = typesOf(pack).map(t => `<option value="${esc(t.t)}"${t.t === type ? ' selected' : ''}>${esc(section(t.t).name)}</option>`).join('');
+  return `<select class="packsel sectsel" aria-label="Switch section" data-pack="${esc(pack)}">${opts}</select>`;
+}
+function crumbs(parts) { return '<div class="crumbs">' + parts.map(([t, h]) => h ? `<a href="${h}"${t === 'Browse' ? ' data-scroll="browse"' : ''}>${esc(t)}</a>` : t.startsWith('<select') ? t : esc(t)).join(' / ') + '</div>'; }
 function failed(e) { app().innerHTML = `<p class="note">Could not load the data (${esc(e.message)}). If you opened this page as a file, run <code>python -m ffxvi_tl site --serve</code> or publish it on a web server.</p>`; }
 
 function viewOpts() {                               // "Show: Japanese / Romaji / Official English" switches, only on pages that list lines
@@ -156,6 +167,8 @@ function home(q) {
   const pack = q.get('pack') || M.default_pack, H = M.hero, T = M.totals;
   const tabs = '<div class="tabs" role="group" aria-label="Game content">' + M.packs.map(p => `<a class="${p.id === pack ? 'on' : ''}" href="#/?pack=${enc(p.id)}"${p.id === pack ? ' aria-current="true"' : ''}>${esc(p.name)}</a>`).join('') + '</div>';
   const info = M.packs.find(p => p.id === pack);
+  const mine = M.files.filter(f => f.p === pack), pl = mine.reduce((a, f) => a + f.c, 0), pd = mine.reduce((a, f) => a + f.d, 0);
+  const pstats = M.packs.length > 1 ? `<p class="pstats"><b>${pl.toLocaleString('en-US')}</b> lines · <b>${mine.length.toLocaleString('en-US')}</b> files · <b>${pct(pd, pl)}%</b> translated</p>` : '';
   const cards = typesOf(pack).map(t => {
     const sec = section(t.t);
     return `<a class="card" href="#/type/${enc(pack)}/${enc(t.t)}"><div class="ct"><b>${esc(sec.name)}</b>${sec.name !== t.t ? `<span class="code">${esc(t.t)}</span>` : ''}</div>`
@@ -168,11 +181,11 @@ function home(q) {
   hero.innerHTML = `<div class="hero-in"><h1>${esc(M.title)}</h1><p>${esc(H.tagline)}</p><div class="hero-actions">`
     + (H.download_url ? `<a class="btn-dl" href="${esc(H.download_url)}" target="_blank" rel="noopener">${esc(H.download_label)}</a>` : '')
     + '<a class="btn-alt" href="#/" data-scroll="browse">Browse the script</a></div></div>';
-  app().innerHTML = `<section class="browse" id="browse"><div class="stats"><div><b>${T.lines.toLocaleString('en-US')}</b><span>lines</span></div><div><b>${T.files.toLocaleString('en-US')}</b><span>files</span></div><div><b>${pct(T.translated, T.lines)}%</b><span>retranslated</span></div></div>`
+  app().innerHTML = `<section class="browse" id="browse"><div class="stats"><div><b>${T.lines.toLocaleString('en-US')}</b><span>lines</span></div><div><b>${T.files.toLocaleString('en-US')}</b><span>files</span></div><div><b>${pct(T.translated, T.lines)}%</b><span>translated</span></div></div>`
     + `<h2 class="sec-title">Browse the script</h2>`
-    + `<p class="lead">Read the retranslation line by line${M.features.japanese ? ', next to the Japanese' : ''}${M.features.romaji ? ', its romaji' : ''}${M.features.official ? ' and the official English' : ''}. `
+    + `<p class="lead">Read the translation line by line${M.features.japanese ? ', next to the Japanese' : ''}${M.features.romaji ? ', its romaji' : ''}${M.features.official ? ' and the official English' : ''}. `
     + `Choose a category of script files to open it${M.features.filters ? ', or use the filters above to search every file' : ''}.</p>`
-    + tabs + (info && info.note ? `<p class="note">${esc(info.note)}</p>` : '') + `<div class="cards">${cards}</div></section>`
+    + tabs + pstats + (info && info.note ? `<p class="note">${esc(info.note)}</p>` : '') + `<div class="cards">${cards}</div></section>`
     ;
   const band = $('#band'), bh = aboutBand(); band.innerHTML = bh; band.hidden = !bh;
   document.title = M.title;
@@ -180,7 +193,7 @@ function home(q) {
 
 function typePage(pack, type) {
   const files = M.files.filter(f => f.p === pack && f.t === type), sec = section(type);
-  app().innerHTML = crumbs([['Browse', '#/?pack=' + enc(pack)], [sec.name]]) + `<h1>${esc(sec.name)}${sec.name !== type ? ` <span class="muted" style="font-size:.6em">${esc(type)}</span>` : ''}</h1>` + (sec.desc ? `<p class="lead">${esc(sec.desc)}</p>` : '')
+  app().innerHTML = crumbs([['Browse', '#/?pack=' + enc(pack)], ...(packCrumb(pack, type) ? [[packCrumb(pack, type)]] : []), [sectionCrumb(pack, type)]]) + `<h1>${esc(sec.name)}${sec.name !== type ? ` <span class="muted" style="font-size:.6em">${esc(type)}</span>` : ''}</h1>` + (sec.desc ? `<p class="lead">${esc(sec.desc)}</p>` : '')
     + `<p><input id="fname" type="search" placeholder="Filter ${files.length.toLocaleString('en-US')} files by name" style="padding:7px 10px;width:min(100%,360px);border:1px solid var(--line);border-radius:6px;background:var(--surface)"></p><div id="flist"></div>`;
   const draw = () => {
     const needle = $('#fname').value.trim().toLowerCase();
@@ -198,11 +211,14 @@ async function filePage(name, q, my) {
   const f = readFilters(q), m = makeMatcher(f), line = q.get('line') || '';
   const sh = await shard(meta.s); if (my !== token) return;
   const lines = sh.files[name] || [];
-  const nav = (j, label, id) => j >= 0 && j < sibs.length ? `<a id="${id}" href="#/file/${enc(sibs[j].n)}" title="${label} file (${id === 'prevfile' ? 'left' : 'right'} arrow)">${id === 'prevfile' ? '← previous' : 'next →'}</a>` : '';
+  const nav = (j, id) => {
+    const label = id === 'prevfile' ? 'previous' : 'next', arrow = id === 'prevfile' ? '‹' : '›';
+    return j >= 0 && j < sibs.length ? `<a class="stepbtn" id="${id}" href="#/file/${enc(sibs[j].n)}" title="${label} file (${id === 'prevfile' ? 'left' : 'right'} arrow)" aria-label="${label} file">${arrow}</a>`
+      : `<span class="stepbtn off" aria-hidden="true">${arrow}</span>`;
+  };
   const opts = sibs.map(s => `<option value="${esc(s.n)}"${s.n === name ? ' selected' : ''}>${esc(s.n.split('/').pop())}</option>`).join('');
-  app().innerHTML = crumbs([['Browse', '#/?pack=' + enc(meta.p)], [section(meta.t).name, '#/type/' + enc(meta.p) + '/' + enc(meta.t)]])
-    + `<div class="filehead"><h1>${esc(name)}</h1><span class="muted">(${i + 1}/${sibs.length})</span><select id="jump" aria-label="Jump to another file">${opts}</select></div>`
-    + `<div class="pager">${nav(i - 1, 'previous', 'prevfile')}${nav(i + 1, 'next', 'nextfile')}</div><div id="out"></div>`;
+  app().innerHTML = crumbs([['Browse', '#/?pack=' + enc(meta.p)], ...(packCrumb(meta.p, meta.t) ? [[packCrumb(meta.p, meta.t)]] : []), [sectionCrumb(meta.p, meta.t)]])
+    + `<div class="filehead"><h1 class="sr">${esc(name)}</h1>${nav(i - 1, 'prevfile')}<select id="jump" aria-label="Jump to another file (${i + 1} of ${sibs.length})">${opts}</select>${nav(i + 1, 'nextfile')}<span class="muted pos">${i + 1} of ${sibs.length}</span></div><div id="out"></div>`;
   $('#jump').addEventListener('change', e => { location.hash = '#/file/' + enc(e.target.value); });
   if (m.error) { $('#out').innerHTML = `<p class="note">${esc(m.error)}</p>`; return; }
   const rows = lines.filter(r => !hasFilter(f) || m.test(r, sh.spk[r[1]]));
@@ -256,8 +272,10 @@ async function searchPage(q, my) {
 }
 
 /* ---------------------------------------------------------------- router */
+let lastPath = null, wantScroll = '';
 async function render() {
-  const my = ++token, {path, q} = routeParts();
+  const my = ++token, {path, q} = routeParts(), stay = path === '/' && lastPath === '/';   // switching pack on the home page must not scroll
+  lastPath = path;
   const f = readFilters(q);
   if (path !== '/') { $('#hero').hidden = true; $('#band').hidden = true; }
   document.body.classList.toggle('home', path === '/');
@@ -275,7 +293,9 @@ async function render() {
     else if (path === '/about' && M.about) await aboutPage(my);
     else if (path.startsWith('/search')) await searchPage(q, my);
     else home(q);
-    if (my === token && !location.hash.includes('line=')) window.scrollTo(0, 0);
+    const target = wantScroll && document.getElementById(wantScroll); wantScroll = '';
+    if (my === token && target) target.scrollIntoView();
+    else if (my === token && !stay && !location.hash.includes('line=')) window.scrollTo(0, 0);
   } catch (e) { if (my === token) failed(e); }
 }
 
@@ -320,9 +340,21 @@ function init() {
     const a = document.getElementById(e.key === 'ArrowLeft' ? 'prevfile' : e.key === 'ArrowRight' ? 'nextfile' : '');
     if (a) location.hash = a.getAttribute('href');
   });
+  document.addEventListener('change', e => {
+    const sel = e.target.closest('.packsel'); if (!sel) return;
+    if (sel.classList.contains('sectsel')) { location.hash = `#/type/${enc(sel.dataset.pack)}/${enc(sel.value)}`; return; }
+    const id = sel.value, t = sel.dataset.type, ts = typesOf(id);       // same section if the other pack has it, else its first section
+    const pick = ts.some(x => x.t === t) ? t : ts.length ? ts[0].t : '';
+    location.hash = pick ? `#/type/${enc(id)}/${enc(pick)}` : `#/?pack=${enc(id)}`;
+  });
   document.addEventListener('click', e => {         // "Browse the script" scrolls to the file types instead of changing the page
     const a = e.target.closest('[data-scroll]'); if (!a) return;
-    e.preventDefault(); document.getElementById(a.dataset.scroll).scrollIntoView({behavior: 'smooth'});
+    e.preventDefault();
+    const el = document.getElementById(a.dataset.scroll);
+    if (el) { el.scrollIntoView({behavior: 'smooth'}); return; }     // already on the home page
+    wantScroll = a.dataset.scroll;                                    // from a file or section page: go home, then scroll there
+    const to = a.getAttribute('href');
+    if (location.hash === to) render(); else location.hash = to;
   });
   addEventListener('hashchange', render);
   render();

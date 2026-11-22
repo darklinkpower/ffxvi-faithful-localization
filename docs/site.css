@@ -111,7 +111,15 @@ table.files { width: 100%; border-collapse: collapse; background: var(--surface)
 /* file view */
 .filehead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin: 10px 0 4px; }
 .filehead h1 { margin: 0; font-size: 1.35rem; word-break: break-all; } .filehead select { max-width: 100%; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
-.pager { display: flex; gap: 14px; flex-wrap: wrap; margin: 6px 0 10px; }
+/* file switcher: ‹ [file dropdown] › and the position, in one row */
+.filehead { align-items: center; margin: 12px 0 10px; }
+.filehead select { font: 600 1.15rem/1.2 var(--head-font, inherit); padding: 6px 10px; }
+.stepbtn { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); text-decoration: none; font-size: 1.3rem; line-height: 1; }
+a.stepbtn:hover { border-color: var(--accent); color: var(--accent); } .stepbtn.off { opacity: .35; }
+.filehead .pos { font-size: .85rem; } .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.crumbs select.packsel { font: inherit; color: var(--ink); padding: 1px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); cursor: pointer; }
+.pstats { margin: -12px 0 22px; color: var(--muted); font-size: .88rem; } .pstats b { color: var(--ink); font-weight: 600; }
 .count { color: var(--muted); margin: 8px 0; }
 .group { margin-top: 18px; } .group h3 { margin: 0 0 6px; font-size: .95rem; word-break: break-all; }
 
@@ -146,3 +154,5 @@ footer p { margin: 4px 0; }
 .foot-grid p { line-height: 1.5; } .foot-meta { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 4px; }
 @media (max-width: 860px) { .foot-grid { grid-template-columns: 1fr; } }
 @media print { .filters, .topbar, footer { display: none; } .line { break-inside: avoid; } }
+
+.browse { scroll-margin-top: 72px; }      /* "Browse" links scroll here: keep the sticky header off the stats */
